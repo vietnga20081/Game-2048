@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  2048-game:
+    build: .
+    container_name: 2048-game
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./saves:/app/saves
+      - ./logs:/app/logs
+    environment:
+      - PYTHONUNBUFFERED=1
+      - SDL_VIDEODRIVER=dummy
+    networks:
+      - game-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import pygame; print('OK')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Optional: Web version using a simple HTTP server
+  2048-web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    container_name: 2048-web
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./web:/app/web
+    networks:
+      - game-network
+
+networks:
+  game-network:
+    driver: bridge
+
+volumes:
+  game-data:
+    driver: local
